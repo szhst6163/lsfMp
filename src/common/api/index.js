@@ -1,0 +1,36 @@
+/**
+ * 交易ID
+ */
+export default {
+  getCityByLatLong: 'getCityByLatlong',
+  getCityList: 'getCityList',
+  getHotFilms: 'getHotFilms',
+  getComingFilms: 'getComingFilms',
+  getAdList: 'getAdList',
+  getCinemas: 'getCinemas',
+  getCinemaListParam: 'getCinemaListParam',
+  getCinemaFilms: 'getCinemaFilms',
+  getCinemaInfo: 'getCinemaInfo',
+  getCinemaShowTime: 'getCinemaShowTime',
+  getSeat: 'getSeat',
+  getFilmShowDates: 'getFilmShowDates',
+  getShowTime: 'getShowTime',
+  getFilmInfo: 'getFilmInfo',
+  getFilmReviews: 'getFilmReviews',
+  selfWantSee: 'updateCommentZan',
+  submitReview: 'submitReview',
+  getHotCity: 'getHotCitys',
+  querySnacks: 'querySnacks',
+  getUserOrderList: 'getUserOrderList',
+  cancelOrder: 'cancelOrder',
+  checkOrderStatus: 'checkOrderStatus',
+  createSeatTicketOrder: 'createSeatTicketOrder',
+  getCinemaAffiche: 'getCinemaAffiche',
+  createSellProOrder: 'createSellProOrder',
+  queryOrderMemberPrice: 'queryOrderMemberPrice',
+  getUserCards: 'getUserCards',
+  getCardInfoByCardId: 'getCardInfoByCardId',
+  queryCardBalance: 'queryCardBalance',
+  unbindUserCard: 'unbindUserCard',
+  userCardBind: 'userCardBind'
+}

@@ -1,0 +1,409 @@
+//随机数字
+@function parse-random($value) {
+  @return round(random() * $value);
+}
+$randomId: parse-random(1000000);
+
+$spriteSrc:'/images/sprites/sprite.png?v=#{$randomId}';
+
+$spriteWidth: 391px;
+$spriteHeight: 375px;
+$add: 0px 0px 60px 60px;
+$arrow-down-selected: -358px -298px 16px 9px;
+$arrow-down-white: -182px -270px 16px 9px;
+$arrow-down: -206px -270px 16px 9px;
+$arrow-right: -378px -155px 10px 18px;
+$broadcast-gray: -319px -119px 28px 27px;
+$broadcast: -319px -154px 28px 27px;
+$card: -44px -270px 40px 32px;
+$change: -319px -257px 24px 24px;
+$close: -306px -317px 18px 18px;
+$del: -218px -168px 36px 36px;
+$discuss: -358px -118px 29px 29px;
+$edit: 0px -317px 24px 24px;
+$egg: -358px -222px 25px 32px;
+$fail: -358px -155px 12px 59px;
+$film-3d-imax: 0px -132px 92px 28px;
+$film-3d: -100px -132px 36px 28px;
+$friend: -165px -168px 45px 37px;
+$heart: -278px -317px 20px 18px;
+$hide-pwd: -140px -270px 34px 17px;
+$hot: -30px -349px 17px 24px;
+$location-gray: -319px 0px 31px 39px;
+$location: 0px -349px 22px 26px;
+$minus: -68px 0px 60px 60px;
+$movie_book: -267px -47px 44px 39px;
+$movie_booked: -267px 0px 44px 39px;
+$movie_score: -202px -102px 46px 46px;
+$movie_scored: -202px -48px 46px 46px;
+$movie_star_o_all: -319px -289px 21px 20px;
+$movie_star_o_empty: -191px -317px 21px 20px;
+$movie_star_o_half: -249px -317px 21px 20px;
+$movie_star_y_all: -32px -317px 24px 24px;
+$movie_star_y_empty: -96px -317px 24px 24px;
+$movie_star_y_half: -128px -317px 24px 24px;
+$night: -290px -222px 21px 21px;
+$ok: -267px -198px 22px 15px;
+$order: 0px -270px 36px 39px;
+$phone: -358px 0px 33px 34px;
+$pinkTime: -358px -42px 30px 30px;
+$play-icon: -136px -64px 54px 54px;
+$refresh: -143px -222px 39px 40px;
+$score_star_g: 0px -68px 58px 56px;
+$score_star_picked_all: -136px 0px 58px 56px;
+$score_star_picked_half: -66px -68px 58px 56px;
+$search-btn: -96px -222px 39px 40px;
+$search: -160px -317px 23px 22px;
+$sendComment: -358px -262px 28px 28px;
+$show-pwd: -144px -132px 34px 26px;
+$start-emtpy: -64px -317px 24px 24px;
+$start-gray-L: 0px -168px 46px 46px;
+$start-harf-S: -220px -317px 21px 20px;
+$success: -202px 0px 57px 40px;
+$sun: -319px -223px 26px 26px;
+$support-active-selected: -319px -83px 28px 28px;
+$support-active: -319px -47px 28px 28px;
+$tab-food-selected: -267px -146px 38px 44px;
+$tab-food: -267px -94px 38px 44px;
+$tab-movie-selected: -48px -222px 40px 40px;
+$tab-movie: 0px -222px 40px 40px;
+$tab-ticket-selected: -190px -222px 42px 35px;
+$tab-ticket: -240px -222px 42px 35px;
+$ticket: -92px -270px 40px 30px;
+$time: -358px -80px 30px 30px;
+$warn: -319px -189px 26px 26px;
+$wechat: -110px -168px 47px 38px;
+$wechatPay: -54px -168px 48px 41px;
+
+@function px2rpx ($px) {
+  @if (type-of($px) == "number") {
+    @return $px / 1px * 1rpx;
+  }
+  @if (type-of($px) == "list") {
+    @if (nth($px, 1) == 0 and nth($px, 2) != 0) {
+      @return 0 nth($px, 2) / 1px * 1rpx;
+    } @else if (nth($px, 1) == 0 and nth($px, 2) == 0)  {
+      @return 0 0;
+    } @else if (nth($px, 1) != 0 and nth($px, 2) == 0) {
+      @return nth($px, 1) / 1px * 1rpx 0;
+    } @else {
+      @return nth($px, 1) / 1px *1rpx nth($px, 2) / 1px * 1rpx;
+    }
+  }
+}
+
+@function strip-units($number){
+  @return $number / ($number * 0 + 1);
+}
+
+@function format-zero($number){
+	@if $number == 0 {
+		@return 1;
+	}@else{
+		@return $number;
+	}
+}
+
+@mixin sprite-width($sprite, $precision) {
+	@if $precision {
+		width: px2rpx(nth($sprite, 3));
+	}@else{
+		width: px2rpx(nth($sprite, 3) + 2px);
+	}
+
+}
+
+@mixin sprite-height($sprite, $precision) {
+	@if $precision {
+		height: px2rpx(nth($sprite, 4));
+	}@else{
+		height: px2rpx(nth($sprite, 4) + 2px);
+	}
+}
+
+@mixin sprite-position($sprite, $precision) {
+	@if $precision {
+		background-position: strip-units(nth($sprite, 1)) / strip-units(nth($sprite, 3) - $spriteWidth) * 100%  strip-units(nth($sprite, 2)) / format-zero(strip-units(nth($sprite, 4) - $spriteHeight)) * 100%;
+	}@else{
+		background-position: strip-units(nth($sprite, 1)) / strip-units(nth($sprite, 3) + 1 - $spriteWidth) * 100%  strip-units(nth($sprite, 2)) / format-zero(strip-units(nth($sprite, 4) + 1 - $spriteHeight)) * 100%;
+	}
+}
+
+@mixin sprite($sprite, $precision) {
+	@include sprite-position($sprite, $precision);
+	@include sprite-width($sprite, $precision);
+	@include sprite-height($sprite, $precision);
+}
+
+%common-sprite{
+	background-image: url('#{$spriteSrc}');
+	background-repeat: no-repeat;
+	background-size: px2rpx(($spriteWidth, $spriteHeight));
+    display: inline-block;
+}
+
+
+.icon-add {
+	@extend %common-sprite;
+    @include sprite($add, false);
+}
+.icon-arrow-down-selected {
+	@extend %common-sprite;
+    @include sprite($arrow-down-selected, false);
+}
+.icon-arrow-down-white {
+	@extend %common-sprite;
+    @include sprite($arrow-down-white, false);
+}
+.icon-arrow-down {
+	@extend %common-sprite;
+    @include sprite($arrow-down, false);
+}
+.icon-arrow-right {
+	@extend %common-sprite;
+    @include sprite($arrow-right, false);
+}
+.icon-broadcast-gray {
+	@extend %common-sprite;
+    @include sprite($broadcast-gray, false);
+}
+.icon-broadcast {
+	@extend %common-sprite;
+    @include sprite($broadcast, false);
+}
+.icon-card {
+	@extend %common-sprite;
+    @include sprite($card, false);
+}
+.icon-change {
+	@extend %common-sprite;
+    @include sprite($change, false);
+}
+.icon-close {
+	@extend %common-sprite;
+    @include sprite($close, false);
+}
+.icon-del {
+	@extend %common-sprite;
+    @include sprite($del, false);
+}
+.icon-discuss {
+	@extend %common-sprite;
+    @include sprite($discuss, false);
+}
+.icon-edit {
+	@extend %common-sprite;
+    @include sprite($edit, false);
+}
+.icon-egg {
+	@extend %common-sprite;
+    @include sprite($egg, false);
+}
+.icon-fail {
+	@extend %common-sprite;
+    @include sprite($fail, false);
+}
+.icon-film-3d-imax {
+	@extend %common-sprite;
+    @include sprite($film-3d-imax, false);
+}
+.icon-film-3d {
+	@extend %common-sprite;
+    @include sprite($film-3d, false);
+}
+.icon-friend {
+	@extend %common-sprite;
+    @include sprite($friend, false);
+}
+.icon-heart {
+	@extend %common-sprite;
+    @include sprite($heart, false);
+}
+.icon-hide-pwd {
+	@extend %common-sprite;
+    @include sprite($hide-pwd, false);
+}
+.icon-hot {
+	@extend %common-sprite;
+    @include sprite($hot, false);
+}
+.icon-location-gray {
+	@extend %common-sprite;
+    @include sprite($location-gray, false);
+}
+.icon-location {
+	@extend %common-sprite;
+    @include sprite($location, false);
+}
+.icon-minus {
+	@extend %common-sprite;
+    @include sprite($minus, false);
+}
+.icon-movie_book {
+	@extend %common-sprite;
+    @include sprite($movie_book, false);
+}
+.icon-movie_booked {
+	@extend %common-sprite;
+    @include sprite($movie_booked, false);
+}
+.icon-movie_score {
+	@extend %common-sprite;
+    @include sprite($movie_score, false);
+}
+.icon-movie_scored {
+	@extend %common-sprite;
+    @include sprite($movie_scored, false);
+}
+.icon-movie_star_o_all {
+	@extend %common-sprite;
+    @include sprite($movie_star_o_all, false);
+}
+.icon-movie_star_o_empty {
+	@extend %common-sprite;
+    @include sprite($movie_star_o_empty, false);
+}
+.icon-movie_star_o_half {
+	@extend %common-sprite;
+    @include sprite($movie_star_o_half, false);
+}
+.icon-movie_star_y_all {
+	@extend %common-sprite;
+    @include sprite($movie_star_y_all, false);
+}
+.icon-movie_star_y_empty {
+	@extend %common-sprite;
+    @include sprite($movie_star_y_empty, false);
+}
+.icon-movie_star_y_half {
+	@extend %common-sprite;
+    @include sprite($movie_star_y_half, false);
+}
+.icon-night {
+	@extend %common-sprite;
+    @include sprite($night, false);
+}
+.icon-ok {
+	@extend %common-sprite;
+    @include sprite($ok, false);
+}
+.icon-order {
+	@extend %common-sprite;
+    @include sprite($order, false);
+}
+.icon-phone {
+	@extend %common-sprite;
+    @include sprite($phone, false);
+}
+.icon-pinkTime {
+	@extend %common-sprite;
+    @include sprite($pinkTime, false);
+}
+.icon-play-icon {
+	@extend %common-sprite;
+    @include sprite($play-icon, false);
+}
+.icon-refresh {
+	@extend %common-sprite;
+    @include sprite($refresh, false);
+}
+.icon-score_star_g {
+	@extend %common-sprite;
+    @include sprite($score_star_g, false);
+}
+.icon-score_star_picked_all {
+	@extend %common-sprite;
+    @include sprite($score_star_picked_all, false);
+}
+.icon-score_star_picked_half {
+	@extend %common-sprite;
+    @include sprite($score_star_picked_half, false);
+}
+.icon-search-btn {
+	@extend %common-sprite;
+    @include sprite($search-btn, false);
+}
+.icon-search {
+	@extend %common-sprite;
+    @include sprite($search, false);
+}
+.icon-sendComment {
+	@extend %common-sprite;
+    @include sprite($sendComment, false);
+}
+.icon-show-pwd {
+	@extend %common-sprite;
+    @include sprite($show-pwd, false);
+}
+.icon-start-emtpy {
+	@extend %common-sprite;
+    @include sprite($start-emtpy, false);
+}
+.icon-start-gray-L {
+	@extend %common-sprite;
+    @include sprite($start-gray-L, false);
+}
+.icon-start-harf-S {
+	@extend %common-sprite;
+    @include sprite($start-harf-S, false);
+}
+.icon-success {
+	@extend %common-sprite;
+    @include sprite($success, false);
+}
+.icon-sun {
+	@extend %common-sprite;
+    @include sprite($sun, false);
+}
+.icon-support-active-selected {
+	@extend %common-sprite;
+    @include sprite($support-active-selected, false);
+}
+.icon-support-active {
+	@extend %common-sprite;
+    @include sprite($support-active, false);
+}
+.icon-tab-food-selected {
+	@extend %common-sprite;
+    @include sprite($tab-food-selected, false);
+}
+.icon-tab-food {
+	@extend %common-sprite;
+    @include sprite($tab-food, false);
+}
+.icon-tab-movie-selected {
+	@extend %common-sprite;
+    @include sprite($tab-movie-selected, false);
+}
+.icon-tab-movie {
+	@extend %common-sprite;
+    @include sprite($tab-movie, false);
+}
+.icon-tab-ticket-selected {
+	@extend %common-sprite;
+    @include sprite($tab-ticket-selected, false);
+}
+.icon-tab-ticket {
+	@extend %common-sprite;
+    @include sprite($tab-ticket, false);
+}
+.icon-ticket {
+	@extend %common-sprite;
+    @include sprite($ticket, false);
+}
+.icon-time {
+	@extend %common-sprite;
+    @include sprite($time, false);
+}
+.icon-warn {
+	@extend %common-sprite;
+    @include sprite($warn, false);
+}
+.icon-wechat {
+	@extend %common-sprite;
+    @include sprite($wechat, false);
+}
+.icon-wechatPay {
+	@extend %common-sprite;
+    @include sprite($wechatPay, false);
+}

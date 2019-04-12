@@ -1,0 +1,39 @@
+<script>
+  import request from 'lib/core/request';
+
+  export default class extends request {
+
+    config = {
+      "pages":[
+        'pages/index',
+        'pages/movieList',
+        'pages/sharePage'
+      ],
+      "window":{
+        "backgroundTextStyle": "light",
+        "navigationBarBackgroundColor": "#000",
+        "navigationBarTitleText": "万象城",
+        "navigationBarTextStyle": "#fff"
+      }
+    };
+
+    onLaunch(e) {
+      wx.showShareMenu({
+        withShareTicket: true,
+        success (e) {
+          console.log(e)
+        },
+        fail (e) {
+          console.log(e)
+        },
+        complete (e) {
+          console.log(e)
+        }
+      });
+    }
+  }
+</script>
+
+<style lang="scss">
+  /** less **/
+</style>

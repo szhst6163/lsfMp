@@ -1,0 +1,216 @@
+<template>
+  <text wx:if="{{time > 0}}">{{dates}}</text>
+</template>
+<script>
+  import wepy from 'wepy';
+
+  const MILLISECONDS_SECOND = 1000;
+  const MILLISECONDS_MINUTE = 60 * MILLISECONDS_SECOND;
+  const MILLISECONDS_HOUR = 60 * MILLISECONDS_MINUTE;
+  const MILLISECONDS_DAY = 24 * MILLISECONDS_HOUR;
+
+  export default class CountDown extends wepy.component {
+
+    props = {
+      autoStart: {
+        type: Boolean,
+        default: true
+      },
+      formats: {
+        type: String,
+        default: "dd天hh时mm分ss秒"
+      },
+      interval: {
+        type: Number,
+        default: 1000
+      },
+      time: {
+        type: [String, Number],
+        default: 0
+      }
+    };
+
+    onLoad() {
+      if (this.time > 0) {
+        this.opts.count = parseInt(this.time);
+        this.formatTime();
+      }
+      if (this.autoStart) {
+        this.startTimer();
+      }
+    };
+
+    opts = {
+      count: 0,
+      counting: false,
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      timeList: []
+    };
+
+    data = {
+      dates: 0
+    };
+
+    getFormats () {
+      let o = {
+        "d+" : this.opts.days,
+        "h+" : this.opts.hours,
+        "m+" : this.opts.minutes,
+        "s+" : this.opts.seconds
+      };
+      let format = this.formats;
+      for(let k in o){
+        if(new RegExp("("+ k +")").test(format)){
+          format = format.replace(RegExp.$1, RegExp.$1.length === 1 ? o[k] : ("00" + o[k]).substr(o[k].toString().length));
+        }
+      }
+      return format;
+    }
+
+    getSeconds () {
+      const interval = this.interval;
+      const seconds = (this.opts.count % MILLISECONDS_MINUTE) / MILLISECONDS_SECOND;
+
+      if (interval < 10) {
+        return seconds.toFixed(3);
+      } else if (interval >= 10 && interval < 100) {
+        return seconds.toFixed(2);
+      } else if (interval >= 100 && interval < 1000) {
+        return seconds.toFixed(1);
+      }
+
+      return Math.floor(seconds);
+    }
+
+    formatTime () {
+      let o = this.opts;
+      o.days = Math.floor(o.count / MILLISECONDS_DAY);
+      o.hours = Math.floor((o.count % MILLISECONDS_DAY) / MILLISECONDS_HOUR);
+      o.minutes = Math.floor((o.count % MILLISECONDS_HOUR) / MILLISECONDS_MINUTE);
+      o.seconds = this.getSeconds();
+      this.dates = this.getFormats();
+      if(o.timeList.length === 0){
+        this.$apply();
+      }
+
+    }
+
+    forTime (interval) {
+      let o = this.opts;
+      let list = [];
+      let stop = true;
+      o.timeList.forEach((time, index) => {
+        o.timeList[index] -= interval;
+        o.count = o.timeList[index];
+        this.formatTime();
+        if(stop && o.timeList[index] > 0){
+          stop = false;
+        }
+        list.push({
+          days: this.opts.days,
+          hours: this.opts.hours,
+          minutes: this.opts.minutes,
+          seconds: this.opts.seconds,
+          dates: this.dates,
+          stop: o.timeList[index] <= 0
+        });
+      });
+      this.stepList(list, stop);
+    }
+
+    startTimer () {
+      let o = this.opts;
+      if (o.counting || (o.count === 0 && o.timeList.length === 0)) {
+        return;
+      }
+
+      this.$emit('countdownstart');
+      o.counting = true;
+
+      const interval = this.interval;
+      const len = o.timeList.length;
+      o.timeout = setInterval(() => {
+        if(len > 0){
+          this.forTime(interval);
+        }else{
+          o.count -= interval;
+          this.formatTime();
+          this.step();
+        }
+      }, interval);
+
+      if(len === 0) {
+        this.step();
+      }else{
+        this.forTime(interval);
+      }
+    }
+
+    stepList (list, stop) {
+      if (!this.opts.counting) {
+        return;
+      }
+
+      this.$emit('countdownprogresslist', list);
+
+      if (stop) {
+        this.stop();
+      }
+    }
+
+    step() {
+      if (!this.opts.counting) {
+        return;
+      }
+
+      this.$emit('countdownprogress', {
+        days: this.opts.days,
+        hours: this.opts.hours,
+        minutes: this.opts.minutes,
+        seconds: this.opts.seconds
+      });
+
+      if (this.opts.count <= 0) {
+        this.stop();
+      }
+    }
+
+    stop() {
+      this.opts.counting = false;
+      clearInterval(this.opts.timeout);
+      this.$emit('countdownend');
+    }
+
+    events = {
+      start (time, format) {
+        if(/^\d+$/.test(time)){
+          if(format){
+            this.formats = format;
+          }
+          this.time = time;
+          this.opts.count = parseInt(time);
+          this.formatTime();
+        }
+        this.startTimer();
+      },
+      destroy () {
+        this.stop();
+      },
+      reset() {
+        this.opts.count = parseInt(this.time);
+      },
+      initTime (v) {
+        this.opts.timeList = v;
+        this.startTimer();
+      },
+      pushTime (v) {
+        this.opts.timeList = this.opts.timeList.concat(v);
+        this.startTimer();
+        this.forTime(this.interval);
+      }
+    }
+  }
+</script>

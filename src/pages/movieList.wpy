@@ -1,0 +1,726 @@
+<template>
+  <view class="content">
+    <camera class="m-camera" device-position="{{cameraDic}}" flash="off" binderror="error">
+      <cover-view class="ctxContent">
+        <canvas canvas-id="canvas" id="canvas" class="canvas">
+          <cover-view class="photoPage">
+            <cover-view class="scanArea">
+              <cover-view wx:if="{{!canCamera&&isLock&&isCheck}}" class="spinner {{!canCamera&&isLock&&isCheck?'ani':''}}">
+                <cover-view class="rect1 div"></cover-view>
+                <cover-view class="rect2 div"></cover-view>
+                <cover-view class="rect3 div"></cover-view>
+                <cover-view class="rect4 div"></cover-view>
+                <cover-view class="rect5 div"></cover-view>
+              </cover-view>
+              <cover-view wx:if="{{!isCheck}}" class="scanAreaImg">
+                <cover-image class="scanAreaPng" src="./../images/p2kuangkuang.png"></cover-image>
+                <cover-view class="scaningText {{ani?'ani':''}}">
+                  <cover-image class="image" src="./../images/p2shibiezhong.png"></cover-image>
+                </cover-view>
+                <cover-view class="scanLine {{ani?'ani':''}}"></cover-view>
+              </cover-view>
+              <cover-view wx:if="{{!isCheck}}" class="scanInfo">
+                <cover-image mode="aspectFit" class="scanInfoImg" src="./../images/p2wenzi.png"></cover-image>
+              </cover-view>
+            </cover-view>
+            <cover-view class="takephoto {{canCamera?'':'hide'}}">
+              <cover-view class="btns">
+                <cover-view class="changeCamera"></cover-view>
+                <cover-image @tap="takePhoto" src="./../images/p3cemera.png"></cover-image>
+                <cover-image class="changeCamera" @tap="changeCamera" src="./../images/p4button2.png"></cover-image>
+              </cover-view>
+            </cover-view>
+            <!--<cover-view class="takephoto">-->
+            <!--<cover-view class="btns">-->
+            <!--<cover-view class="changeCamera"></cover-view>-->
+            <!--<cover-image   @tap="takePhoto" src="./../images/p3cemera.png"></cover-image>-->
+            <!--<cover-image class="changeCamera" @tap="changeCamera" src="./../images/p4button2.png"></cover-image>-->
+            <!--</cover-view>-->
+            <!--</cover-view>-->
+          </cover-view>
+        </canvas>
+      </cover-view>
+
+    </camera>
+
+  </view>
+
+</template>
+<script>
+  import wepy from 'wepy';
+  import query from "../common/lib/json/query";
+  const upng = require('../common/utils/UPNG.js');
+  import storage from "../common/lib/util/storage";
+  export default class Content extends wepy.page {
+    config = {
+      navigationBarBackgroundColor:"#000000",
+      "navigationBarTitleText": "城市创作计划",
+      navigationBarTextStyle:"white",
+      "disableScroll": true,
+      backgroundColor:"#000000"
+    };
+    components={
+    };
+    props = {
+      option: {
+        type: Object,
+        default(){
+          return {}
+        },
+      }
+    };
+    //////////////////加载
+    loadAnimate(type){
+      return Promise.all([
+        this.download({url:`https://1a-1253532426.coscd.myqcloud.com/img/animate${type}_pre/`,size:75}),//前段
+        this.download({url:`https://1a-1253532426.coscd.myqcloud.com/img/animate${type}/`,size:75}),
+      ]);
+
+    }
+    download(obj){
+      let arr = [];
+      for (let i = 0; i < obj.size; i++) {
+        arr.push(this.onceDown(obj, i))
+      }
+      return Promise.all(arr)
+    }
+    onceDown(obj,i){
+      let that = this;
+      return new Promise((resolve,reject)=>{
+        let url = obj.url + i + ".png";
+        wx.downloadFile({
+          url:url,
+          success(res){
+            if(that.isLeave){
+              reject();
+              return;
+            }
+            res.index = i;
+            resolve(res)
+          },
+          fail(res){
+            reject(res);
+          }
+        })
+      })
+    }
+    /////////////////
+    initPage() {
+      let that = this;
+      this.platform = wx.getSystemInfoSync();
+      this.ctx = wx.createCanvasContext('canvas', this);
+      this.camera = wx.createCameraContext();
+      this.getSize()
+        .then(res => {
+          // setTimeout(()=>{
+          //   this.drawBtn()
+          // },1000)
+          this.isInit = true;
+          this.translate();
+          this.reInit();
+          this.scan();
+          // that.start(storage.get('fileArr_hua'))
+        });
+//      this.getToken()
+    };
+    onShow(){
+      setTimeout(()=>{
+        this.ani = true;
+        this.$apply()
+      },1000);
+      this.isLeave = false;
+      if(this.isInit){
+        if(!storage.get('isBack')){
+          this.initPage();
+        }
+        this.reInit();
+      }else{
+        this.initPage();
+      }
+
+      // this.loadBtn();
+//      this.reInit()
+    }
+    onUnload () {
+      this.isLeave = true;
+      this.reInit()
+    }
+    onHide () {
+      this.isLeave = true;
+      this.reInit()
+    }
+
+    data = {
+      i:0,
+      ctx: null,
+      cameraShow:false,
+      isCheck:false,
+      canCamera:false,
+      delay:null,
+      ani:false,
+      camera:null,
+      cameraDic:"back",
+      isLeave:false,
+      isInit:false,
+      loadI:0,
+      prc:0,
+      isLock:false,
+      isFirst:true,
+      platform:'',
+      photoBtn:{
+        left:{
+          width:100,
+          height:100
+        },
+        right:{
+          width:52,
+          height:44
+        }
+      },
+      ctxInfo: {},
+      Timer: null,
+      Timer2:null,
+      base64:{},
+      scale:0,
+      key: 0,
+      img1:"",
+      image:{},
+      animateType:'',
+      token:'24.8aaac02a7140a8e7a2b22b645aa42b5f.2592000.1537624069.282335-11656572'
+
+    };
+    // upDatePhoto(url){ //无脑上传
+    //   let that = this;
+    //   wx.uploadFile({
+    //     url:"https://www.huangqm.xyz/easyar/dingzhishibie.php",
+    //     filePath:url,
+    //     name:"xxx",
+    //     type:'json',
+    //     success(res){
+    //       that.isLock = false;
+    //       that.scanText = "扫描";
+    //       wx.showToast({title:`识别时间${(new Date().getTime()-that.testTime)/1000}s`});
+    //       if(JSON.parse(res.data).results[0].name === "zhanhui2"){
+    //         that.isCheck = true;
+    //         that.start(that.img1);
+    //       }else{
+    //         // wx.showToast({
+    //         //   title: '识别失败',
+    //         //   icon:"none"
+    //         // })
+    //       }
+    //       that.$apply();
+    //     },
+    //     complete(res){
+    //     }
+    //   })
+    // }
+    upDatePhoto(){ //BASE64上传
+      let that = this;
+      wx.request({
+        method:"post",
+        url:"https://www.huangqm.xyz/easyar/same.php",
+        data:{img:that.base64.data},
+        type:'json',
+        header: {
+          'content-type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        success(res){
+//          wx.showToast({
+//            title: `识别率：${res.data.result[0].score};type:${res.data.result[0].brief}`,
+//            icon:'none'
+//          });
+//          return;
+         let type = res.data.result[0].brief;
+         if(res.data.result[0].score > 0.7 ||(type == 10 && res.data.result[0].score > 0.65)) {
+          // let type = 1
+          that.animateType = type;
+          if (that.isCheck) return;
+          that.isCheck = true;
+          that.$apply();
+          that.loadAnimate(type)
+          // that.loadAnimate(1)
+            .then(res => {
+              if (that.isCheck) {
+                storage.put("fileArr_" + that.animateType + "_pre", res[0].map(res => res.tempFilePath));
+                storage.put("fileArr_" + that.animateType, res[1].map(res => res.tempFilePath));
+                that.isLock = false;
+                that.$apply();
+                that.play();
+              }
+            })
+         }
+        },
+        complete(res){
+        }
+      })
+    }
+    startCxt(){//初始画面
+      let scale = this.scale;
+      let ch = this.ctxInfo.height;
+      let cw = this.ctxInfo.width;
+      let rectW = 40;
+      let rectH = 10;
+      // this.ctx.rect(20*scale, 20*scale, rectW*scale, rectH*scale);
+      // this.ctx.rect((20+this.ctxInfo.width/2)*scale, 20*scale, rectW*scale, rectH*scale);
+      this.ctx.rect(0,0,cw,ch);
+      this.ctx.setFillStyle('#000');
+      this.ctx.fill();
+      this.ctx.draw();
+    }
+    getToken(){
+      let that = this;
+      wx.request({
+        url:"https://www.huangqm.xyz/easyar/baidu.php",
+        success(res){
+          that.token = res.data.access_token;
+        }
+      })
+    }
+    methods={
+      changeCamera(){
+        this.cameraDic = this.cameraDic === "back"?"front":"back";
+      },
+      takePhoto() {
+        let that = this;
+        this.camera.takePhoto({
+          quality: 'high',
+          success: (res) => {
+            let ani = storage.get("fileArr_"+[that.animateType]);
+            that.stopAnimate();
+            //  图X 图Y 图w  图h   画布X 画布Y       画布W  画布H
+            that.ctx.drawImage(res.tempImagePath,0,0,res.width,res.height,0,0,that.ctxInfo.width,that.ctxInfo.height);
+            that.ctx.drawImage(ani[that.key],0,0,375, 603,0,0,that.ctxInfo.width,603*that.scale); //平铺
+            that.ctx.rect(0, 603*this.scale, 999, 999);
+            this.ctx.setFillStyle('#000');
+            this.ctx.fill();
+            that.ctx.draw(false,()=>{
+              that.nextStep();
+            });
+          }
+        })
+      },
+    };
+    scan() {
+      this.startCamera();
+      this.i = 0;
+      this.isLock = true;
+      clearInterval(this.Timer);
+      this.Timer = null;
+      this.Timer2 = setInterval(()=>{
+        this.startTime = new Date().getTime();
+        this.i++;
+        if(this.isCheck||this.i>60){
+          clearInterval(this.Timer2);
+          this.Timer2 = null;
+          this.i = 0;
+        }else{
+          this.camera.takePhoto({
+            quality: 'low',
+            success: (res) => {
+              this.image.src = res.tempImagePath;
+              this.picToBase(res);
+              // this.upDatePhoto(res.tempImagePath) 无脑上传用
+            }
+          })
+        }
+      },3000)
+    }
+    startCamera(){
+      this.cameraShow = true;
+      this.isCheck = false;
+      this.$apply();
+      this.clearCtx();
+//        this.scan();
+    }
+    downLoadLogo(url){
+      return new Promise((resolve,reject)=>{
+        wx.downloadFile({
+          url:url,
+          success(rs){
+            resolve(rs)
+          },
+          fail(rs){
+            wx.showToast({
+              title: rs,
+              icon:"none"
+            });
+            reject(rs)
+          }
+        });
+      })
+
+    }
+    nextStep(){
+      let that = this;
+      wx.canvasToTempFilePath({
+        canvasId:"canvas",
+        success(res){
+          that.downLoadLogo("https://1a-1253532426.coscd.myqcloud.com/logo.png")
+            .then(rs=>{
+              that.reInit("takePhoto");
+              wx.navigateTo({
+                url: `sharePage?${query.stringify({
+                  src: res.tempFilePath,
+                  height: that.ctxInfo.height,
+                  width: that.ctxInfo.width,
+                  src1:rs.tempFilePath,
+                })}`
+              })
+            })
+        }
+      });
+    }
+    picToBase(res){
+      let that = this;
+      let sizeW = this.platform.windowWidth/2;
+      let sizeH = this.platform.windowHeight/2;
+      wx.getImageInfo({
+        src: res.tempImagePath,
+        success: res => {
+          this.base64 = {
+            imgWidth: res.width,
+            imgHeight: res.height
+          };
+          let camScale = 120/that.base64.imgWidth;
+          //  图X 图Y 图w  图h   画布X 画布Y       画布W  画布H
+          this.ctx.drawImage(res.path, 0, 0, this.base64.imgWidth, this.base64.imgHeight,sizeW*0.5,sizeH*0.5,that.base64.imgWidth*camScale,that.base64.imgHeight*camScale);  //IOS
+          this.ctx.draw(false, () => {
+            // 2. 获取图像数据
+            wx.canvasGetImageData({
+              canvasId: 'canvas',
+              x: sizeW*0.5,
+              y: sizeH*0.5,
+              width: parseInt(that.base64.imgWidth*camScale),
+              height: parseInt(that.base64.imgHeight*camScale),
+              success(res) {
+                if (that.platform.platform == 'ios') {
+                  res = that.reverseImgData(res)
+                }
+                that.clearCtx();
+                let pngData = upng.encode([res.data.buffer], res.width, res.height);
+                let base64 = wx.arrayBufferToBase64(pngData)
+                that.base64.data = base64;
+                that.upDatePhoto();
+              }
+            })
+          })
+        }
+      });
+    }
+    reverseImgData(res) {
+      var w = res.width;
+      var h = res.height;
+      let con = 0
+      for (var i = 0; i < h / 2; i++) {
+        for (var j = 0; j < w * 4; j++) {
+          con = res.data[i * w * 4 + j]
+          res.data[i * w * 4 + j] = res.data[(h - i - 1) * w * 4 + j]
+          res.data[(h - i - 1) * w * 4 + j] = con
+        }
+      }
+      return res
+    }
+    clearCtx(){
+      this.ctx.clearRect(0,0,this.ctxInfo.width,this.ctxInfo.height);
+      this.ctx.draw()
+    }
+    translate(x) {//返回设计稿比例 直接相乘即可
+      let designSize = 375;//设计稿宽度
+      this.scale =  this.ctxInfo.width / designSize
+    }
+    getSize() {
+      return new Promise((resolve, req) => {
+        wx.createSelectorQuery().select('#canvas').boundingClientRect(rect => {
+          this.ctxInfo = {width: rect.width, height: rect.height}
+          resolve()
+        }).exec();
+      })
+    }
+
+    drawImg(w,url) {
+      //  图X 图Y 图w  图h   画布X 画布Y       画布W  画布H
+      this.ctx.drawImage(url,0,0, 375, 603,0,0,this.ctxInfo.width,603*this.scale); //平铺
+      this.ctx.rect(0, 603*this.scale, 999, 999);
+      this.ctx.setFillStyle('#000');
+      this.ctx.fill();
+      this.ctx.draw();
+    }
+    stopAnimate(){
+      clearInterval(this.Timer);
+      this.Timer = null;
+    }
+    firstAnimate(){
+      return new Promise(resolve=>{
+        let arr = storage.get('fileArr_'+this.animateType+'_pre');
+        let that = this;
+        fn();
+        function fn (){
+          setTimeout(()=>{
+            that.key+=1;
+            if(that.key >= arr.length){
+              that.key = 0;
+              that.$apply();
+              resolve()
+            }else if(that.isCheck){
+              that.drawImg(that.key,arr[that.key]);
+              fn();
+            }
+          },40)
+        }
+      })
+    }
+    play(){//第一次播放
+      this.firstAnimate()
+        .then(()=>{
+          this.canCamera = true;
+          this.$apply();
+          this.delay = setTimeout(()=>{
+            this.start()
+          },500);
+        })
+    }
+    start() {
+      let arr = storage.get('fileArr_' + this.animateType);
+      this.Timer = setInterval(() => {
+        this.key += 1;
+        if (this.key >= arr.length) {
+          this.key = 0
+        }
+        this.drawImg(this.key, arr[this.key])
+      }, 40)
+    }
+    reInit(type){
+      clearTimeout(this.delay);
+      clearInterval(this.Timer2);
+      clearInterval(this.Timer);
+      this.Timer2 = null;
+      this.Timer = null;
+      this.clearCtx();
+      this.cameraDic = "back";
+      this.key = 0;
+      //参考storage参数做是否清楚判断
+      if(storage.get("isBack")){
+        storage.clear("isBack");
+        this.canCamera = true;
+        this.isLock = true;
+        this.isCheck = true;
+        this.start();
+      }else{
+        this.canCamera = false;
+        this.isLock = false;
+        if(type !== "takePhoto"){
+          this.isCheck = false;
+        }
+      }
+      this.$apply();
+
+    }
+
+
+  }
+</script>
+<style lang="scss">
+  page{
+    background: #000000;
+  }
+  .content {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    .tips{
+      width: 100%;
+      height:100%;
+      box-sizing:border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction:column;
+      padding:120rpx 0;
+      .tipsImage{
+        margin-top:60rpx;
+        width: 626rpx;
+        height:411rpx;
+      }
+      .tipsScan{
+        width: 100rpx;
+        height:100rpx;
+      }
+    }
+    .photoPage{
+      height:100%;
+      width:100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+    }
+    .scanInfo{
+      display: flex;
+      justify-content: center;
+      align-content: center;
+      width: 696rpx;
+      position: absolute;
+      bottom:8%;
+      .scanInfoImg{
+        width: 335rpx;
+        height:100rpx;
+      }
+    }
+    .scanArea{
+      display: flex;
+      flex-direction: column;
+      width: 696rpx;
+      height:100%;
+      padding:50rpx 0;
+      align-items:center;
+      justify-content:center;
+      box-sizing:border-box;
+
+      .scanAreaImg{
+        height: 100%;
+        position: relative;
+        .scanLine{
+          height:14rpx;
+          width: 100%;
+          position: absolute;
+          top: 0;
+          &.ani{
+            animation:aDirection 3s infinite;
+          }
+          background: #000000;
+        }
+        .scanAreaPng{
+          width: 100%;
+          height:100%;
+        }
+        .scaningText{
+          width: 100%;
+          height:100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: absolute;
+          top:0;
+          &.ani{
+            animation:scaning 3s infinite;
+          }
+          .image{
+            width: 125rpx;
+            height:34rpx;
+          }
+        }
+      }
+      .spinner.ani {
+        margin: 100px auto;
+        height: 60px;
+        text-align: center;
+        font-size: 10px;
+        transform: rotateX(180deg);
+        .div{
+          margin:0 2px;
+          background-color: #000000;
+          height: 100%;
+          width: 6px;
+          display: inline-block;
+          -webkit-animation: stretchdelay 1.2s infinite ease-in-out;
+          animation: stretchdelay 1.2s infinite ease-in-out;
+        }
+        .rect2 {
+          -webkit-animation-delay: -1.1s;
+          animation-delay: -1.1s;
+        }
+        .rect3 {
+          -webkit-animation-delay: -1.0s;
+          animation-delay: -1.0s;
+        }
+        .rect4 {
+          -webkit-animation-delay: -0.9s;
+          animation-delay: -0.9s;
+        }
+        .rect5 {
+          -webkit-animation-delay: -0.8s;
+          animation-delay: -0.8s;
+        }
+      }
+    }
+    .ctxContent{
+      width: 100%;
+      height:100%;
+      &.hide{
+        opacity: 0;
+      }
+      .sacan{
+        width: 100%;
+        height:100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        .scanIcon{
+          width: 400rpx;
+          height:400rpx;
+        }
+      }
+    }
+    .canvas {
+      width: 100%;
+      height:100%;
+    }
+    .m-camera{
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height:100%;
+    }
+    .takephoto{
+      height:20%;
+      width:100%;
+      background: #000;
+      align-self:flex-end;
+      &.hide{
+        display: none;
+      }
+      .btns{
+        height: 100%;
+        background: #000;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        .changeCamera{
+          width: 52rpx;
+          height:44rpx;
+        }
+        .btn{
+          width:225rpx;
+          height:68rpx;
+          background:#e6e6e6;
+          line-height:68rpx;
+          font-size:24rpx;
+          text-align:center;
+          border-radius:12rpx;
+          color:#7f7f7f;
+          &.locking{
+            background:#c6c6c6;
+          }
+        }
+        cover-image{
+          align-items:center;
+          width: 100rpx;
+          height:100rpx;
+        }
+      }
+    }
+  }
+  @keyframes scaning{ 0% { opacity: 1} 50%{opacity: 0} 100%{opacity: 1}}
+  @keyframes aDirection{ 0% { top:0} 100%{top:100%}}
+  @keyframes stretchdelay {
+    0%, 40%, 100% {
+      transform: scaleY(0.4);
+      -webkit-transform: scaleY(0.4);
+    }  20% {
+         transform: scaleY(1.0);
+         -webkit-transform: scaleY(1.0);
+       }
+  }
+</style>

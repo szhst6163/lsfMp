@@ -1,0 +1,383 @@
+<template>
+  <view>
+    <view style="opacity:{{opacity}};transform:scale({{fs}})" class="dev">
+      小程序/ Developed by HaloYeloLab
+    </view>
+    <view class="content">
+      <view class="top">
+        <view class="logo">
+          <image mode="aspectFit" src="../images/p1top.png"></image>
+        </view>
+        <view @tap="navtoggle" class="navItem">
+          <image wx:if="{{!navShow}}" class="navItemIcon" src="../images/p1open.png"></image>
+          <image wx:if="{{navShow}}" class="navItemIcon close" src="../images/p1close.png"></image>
+          <view class="navInfo">
+            <image class="{{navShow?'':'close'}}" src="../images/p1ps.png"></image>
+          </view>
+        </view>
+      </view>
+      <view @tap="go" class="main">
+        <view class="line {{aning?'aning':''}}"></view>
+        <view class="main-border {{aning?'aning':''}}">
+          <image class="border border-t-l" src="../images/p1zuoshang.png"></image>
+          <image class="border border-t-r" src="../images/p1zuoshang.png"></image>
+          <image class="border border-d-l" src="../images/p1zuoshang.png"></image>
+          <image class="border border-d-r" src="../images/p1zuoshang.png"></image>
+        </view>
+        <view class="mainPic">
+          <view class="picContent">
+            <view class="pics {{aning?'aning':''}}">
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/0.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/1.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/2.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/3.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/4.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/5.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/6.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/7.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/8.png"></image>
+              <image bindload="loadImg" mode="aspectFill" src="../images/banner/9.png"></image>
+            </view>
+          </view>
+          <!--<image style='filter: grayscale({{100-prc}}%) blur({{10-prc/10}}px);' src="../images/p1.png"></image>-->
+          <view class="progress">
+            <image src="../images/p1button3.png"></image>
+          </view>
+        </view>
+      </view>
+      <view class="footer">
+        <image class="footer-img" src="../images/p1bottom.png"></image>
+      </view>
+    </view>
+      <camera wx:if="{{cmr}}" class="m-camera" device-position="front" flash="off" binderror="error"></camera>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy';
+  import storage from "../common/lib/util/storage";
+
+  export default class Index extends wepy.page {
+    //页面配置
+    config = {
+      "navigationBarTitleText": "城市创作计划",
+      navigationBarBackgroundColor:"#000000",
+      backgroundColor:"#f5f5f5",
+//      "disableScroll": true,
+      "navigationBarTextStyle":"white"
+    };
+
+    //声明页面中将要使用到的组件
+    components = {};
+
+    //可用于页面模板中绑定的数据
+    onLoad(){
+      wx.loadingImg = false;
+    }
+    onShow(){
+      this.isLock = false;
+    }
+    onPageScroll(e){
+      this.opacity = (Math.abs(e.scrollTop)/100)+0.2;
+      this.fs = Math.min((Math.abs(e.scrollTop)/100),1);
+      this.$apply()
+    }
+    data = {
+      navShow: false,
+      prc: 0,
+      loadI:0,
+      fileArr:{},
+      isInitFirst:false,
+      isLock:false,
+      cmr:true,
+      opacity:0,
+      imgPre:0,
+      aning:false,
+      fs:10,
+      aniKey:0
+    };
+    loadImg(e){
+      this.imgPre++;
+      if(this.imgPre >= 10){
+        this.aning = true;
+        this.$apply();
+      }
+    }
+    methods = {
+      navtoggle(){
+        this.navShow = !this.navShow
+      },
+      go() {
+        if(this.isLock) return;
+        this.isLock = true;
+        wx.getSetting({
+          success:res=>{
+            if(!res.authSetting['scope.camera']){
+              wx.showModal({
+                content: '请在设置中开启您的摄像头权限并重新启动小程序',
+                showCancel:false,
+                success:(res)=>{
+                  wx.openSetting()
+                }
+              });
+            }else{
+              this.cmr = false;
+              wx.navigateTo({
+                url: "movieList"
+              })
+            }
+          }
+        });
+      }
+    };
+  }
+</script>
+<style lang="scss">
+  page{
+    background: #f5f5f5;
+  }
+  .dev{
+    position: fixed;
+    top:12rpx;
+    font-size: 20rpx;
+    color: #666;
+    width: 100%;
+    text-align: center;
+    z-index: 2;
+  }
+  .content {
+    height:100vh;
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+    background:#f5f5f5;
+    position: relative;
+    overflow: hidden;
+    z-index: 9;
+    .top {
+      height:166rpx;
+      margin: 16rpx 0;
+      padding: 0 40rpx;
+      display: flex;
+      justify-content: space-between;
+      .logo {
+        width:275rpx;
+        height:100%;
+        image{
+          height:100%;
+          width: 100%;
+        }
+      }
+      .navItem {
+        position: relative;
+        z-index: 999;
+        height:60rpx;
+        .navItemIcon {
+          width: 68rpx;
+          height:60rpx;
+          position:relative;
+          z-index: 2;
+          &.close{
+            width:24*1.2rpx;
+            height:24*1.2rpx;
+            top:15rpx;
+          }
+        }
+        .navInfo{
+          position:absolute;
+          right:-43rpx;
+          top:-16rpx;
+          >image{
+            width: 505rpx;
+            height:592rpx;
+            transition: all 0.5s;
+            &.close{
+              width: 0;
+              height: 0;
+            }
+          }
+        }
+      }
+    }
+    .main{
+      margin:15rpx 64rpx 33rpx;
+      height:818rpx;
+      width: 626rpx;
+      box-sizing: border-box;
+      border:1px dashed #ddd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      .main-border{
+        height:100%;
+        width: 100%;
+        top:0;
+        left:0;
+        &.aning{
+          animation:borderA1 3s infinite;
+        }
+        position: absolute;
+      }
+      .line{
+        background: #000;
+        position: absolute;
+        width: 100%;
+        height:10rpx;
+        top: 0;
+        left:0;
+        &.aning{
+          animation:line 3s infinite;
+          animation-timing-function: linear;
+        }
+        z-index: 2;
+      }
+      .mainPic{
+        display: flex;
+        flex-direction: column;
+        justify-content:space-around;
+        .picContent{
+          width:450rpx;
+          height:640rpx;
+          overflow: hidden;
+          .pics{
+            &.aning{
+              animation:blur 30s infinite;
+            }
+            width:450rpx;
+            height:640rpx;
+            >image{
+              display:block;
+              width:100%;
+              height:100%;
+            }
+          }
+        }
+        .progress{
+          margin-bottom:-10px;
+          text-align:center;
+          margin-top:16rpx;
+          z-index: 3;
+          >image{
+            width: 100rpx;
+            height: 102rpx;
+          }
+          .text{
+            color: white;
+            font-size: 40rpx;
+            text-shadow: 0 0 1px #666,
+            0 0 1px #666,
+            0 0 1px #666,
+            0 0 1px #666,
+          }
+        }
+      }
+      position: relative;
+      .border{
+        width: 140rpx;
+        height:120rpx;
+        position: absolute;
+        &.border-t-l{
+          top:0;
+          left:0;
+        }
+        &.border-t-r{
+          top:0;
+          right:0;
+          transform: rotateY(180deg);
+        }
+        &.border-d-l{
+          bottom:0;
+          left:0;
+          transform: rotateX(180deg);
+        }
+        &.border-d-r{
+          bottom:0;
+          right:0;
+          transform:rotate(180deg);
+        }
+      }
+
+    }
+    .footer{
+      margin:33rpx 0 20rpx;
+      display: flex;
+      justify-content: center;
+      .footer-img{
+        width: 678rpx;
+        height:44rpx;
+      }
+    }
+  }
+  @keyframes blur{
+    0% { opacity: 1;}
+    8%{opacity:1;transform: translateX(0rpx)}
+    9%{opacity:0;transform: translateX(0rpx)}
+    10%{opacity:0;transform: translateY(-640rpx)}
+    11% { opacity:1;transform: translateY(-640rpx) }
+
+    18%{opacity:1;transform: translateY(-640rpx)}
+    19%{opacity:0;transform: translateY(-640rpx)}
+    20%{opacity:0;transform: translateY(-1280rpx)}
+    21% { opacity:1;transform: translateY(-1280rpx) }
+
+    28%{opacity:1;transform: translateY(-1280rpx)}
+    29%{opacity:0;transform: translateY(-1280rpx)}
+    30%{opacity:0;transform: translateY(-1920rpx)}
+    31% { opacity:1;transform: translateY(-1920rpx) }
+
+    38%{opacity:1;transform: translateY(-1920rpx)}
+    39%{opacity:0;transform: translateY(-1920rpx)}
+    40%{opacity:0;transform: translateY(-2560rpx)}
+    41% { opacity:1;transform: translateY(-2560rpx) }
+
+    48%{opacity:1;transform: translateY(-2560rpx)}
+    49%{opacity:0;transform: translateY(-2560rpx)}
+    50%{opacity:0;transform: translateY(-3200rpx)}
+    51% { opacity:1;transform: translateY(-3200rpx) }
+
+    58%{opacity:1;transform: translateY(-3200rpx)}
+    59%{opacity:0;transform: translateY(-3200rpx)}
+    60%{opacity:0;transform: translateY(-3840rpx)}
+    61% { opacity:1;transform: translateY(-3840rpx) }
+
+    68%{opacity:1;transform: translateY(-3840rpx)}
+    69%{opacity:0;transform: translateY(-3840rpx)}
+    70%{opacity:0;transform: translateY(-4480rpx)}
+    71% { opacity:1;transform: translateY(-4480rpx) }
+
+    78%{opacity:1;transform: translateY(-4480rpx)}
+    79%{opacity:0;transform: translateY(-4480rpx)}
+    80%{opacity:0;transform: translateY(-5120rpx)}
+    81% { opacity:1;transform: translateY(-5120rpx) }
+
+    88%{opacity:1;transform: translateY(-5120rpx)}
+    89%{opacity:0;transform: translateY(-5120rpx)}
+    90%{opacity:0;transform: translateY(-5760rpx)}
+    91% { opacity:1;transform: translateY(-5760rpx) }
+
+    98%{opacity:1;transform: translateY(-5760rpx)}
+    99%{opacity:0;transform: translateY(-5760rpx)}
+    100%{opacity:0;transform: translateY(-6400rpx)}
+  }
+  @keyframes line{
+    0% { transform: translateY(0)}
+    100% { transform: translateY(818-33rpx)}
+  }
+  @keyframes borderA1{
+    0% {
+      heigt:100%;
+      width:100%;
+    }
+    50%{
+      top:1%;
+      left:7%;
+      width:84.5%;
+      height:94.5%;
+    }
+    100% {
+      heigt:100%;
+      width:100%;
+    }
+  }
+
+</style>

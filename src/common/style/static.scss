@@ -1,0 +1,24 @@
+@charset "UTF-8";
+@import "variable";
+@import "mixin";
+
+%vip-card{
+  @include wh(54px, 38px);
+  @include box-sizing;
+  @include solid_rem(2px, $c5);
+  color:$c5;
+  border-radius: 3px;
+  &.selected{
+    @include solid_rem(2px, $c8);
+    color:$c8;
+    .text{
+      @include solid_rem(4px, $c8, top);
+    }
+  }
+  .text{
+    margin-top: rpx(6px);
+    @include solid_rem(4px, $c5, top);
+    height: rpx(26px);
+    @include font-size(20px);
+  }
+}

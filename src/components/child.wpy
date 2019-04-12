@@ -1,0 +1,17 @@
+<template>
+  <view class="child">这是啥，就是显示用的</view>
+</template>
+<script>
+    import wepy from 'wepy';
+
+    export default class Child extends wepy.component {
+
+    }
+</script>
+<style lang="scss">
+.child{
+  background: #f0f;
+  width: 100%;
+  height: 100px;
+}
+</style>

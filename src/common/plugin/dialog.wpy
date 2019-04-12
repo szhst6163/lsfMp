@@ -1,0 +1,120 @@
+<template>
+  <popup :option="myOption" :show.sync="show">
+    <view class="m-mobile-dialog">
+      <view wx:if="{{opts.title}}" class="dialog-title">{{opts.title}}</view>
+      <view class="dialog-content{{opts.content ? ' vh-center':''}}">
+        <slot></slot><text wx:if="{{opts.content}}" class="alert">{{opts.content}}</text>
+      </view>
+      <view class="dialog-items vh-between" wx:if="{{opts.buts.length > 0}}">
+        <view wx:for="{{opts.buts}}" @tap="butClick({{item.id}})" wx:key="index" class="{{item.type == 'ok' ? 'vh-center q-ok' : 'vh-center'}}">{{ item.text }}</view>
+      </view>
+    </view>
+  </popup>
+</template>
+<script>
+  import wepy from 'wepy';
+  import popup from './popup'
+
+  export default class Dialog extends wepy.component {
+
+    props = {
+      option: {
+        type: Object,
+        default: {}
+      },
+      show: {
+        type: Boolean,
+        default: false,
+        twoWay: true
+      }
+    };
+
+    onLoad() {
+      this.opts = Object.assign({}, this.opts, this.option);
+    }
+
+    data = {
+      myOption: {
+        showCenter: true
+      },
+      opts: {
+        tapHide: true,
+        alert: false,
+        buts: []
+      }
+    };
+
+    components = {
+      popup
+    };
+
+    methods = {
+      butClick (id) {
+        this.show = !this.opts.tapHide;
+        this.$emit("button", id);
+      }
+    };
+
+    events = {
+      setOption (opt) {
+        this.opts = Object.assign({}, this.opts, opt || {});
+      },
+      dialogShow () {
+        this.show = true;
+      },
+      dialogHide () {
+        this.show = false;
+      }
+    }
+  }
+</script>
+<style lang="scss">
+  @import "../style/static";
+  .m-mobile-dialog{//自定义弹出框
+    @include radius(10px);
+    box-sizing: border-box;
+    @include width(560px);
+    box-shadow: 0 19px 60px rgba(0,0,0,.298039), 0 15px 20px rgba(0,0,0,.219608);
+    background-color: $c1;
+    .dialog-title{
+      @include font-size(30px);
+      text-align: center;
+      color: $c7;
+      padding-top: rpx(34px);
+    }
+    .dialog-content{
+      padding: rem(8px);
+      @include width(560px);
+      @include min-height(120px);
+      word-break: break-all;
+      @include font-size(28px);
+      box-sizing: border-box;
+      color: $c7;
+      .alert{
+        line-height: rpx(46px);
+        text-align: center;
+        padding: rpx(8px 0 14px);
+      }
+    }
+    .dialog-items{
+      @include height(90px);
+      @include solid(1px, $c12, top);
+      .vh-center{
+        @include font-size(32px);
+        @include height(90px);
+        text-align: center;
+        color: $c7;
+        width: 100%;
+        &:active{
+          background-color: rgba($c0, 0.1);
+        }
+        &.q-ok{
+          color: $c8;
+        }
+        &:nth-child(2){
+          @include solid(1px, $c12, left);
+        }
+      }
+    }
+  }
+</style>

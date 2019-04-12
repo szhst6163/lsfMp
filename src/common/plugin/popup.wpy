@@ -1,0 +1,192 @@
+<template>
+  <view wx:if="{{isShow && overlayShow}}" class="m-overlay" @tap="overlayTap" style="{{overlayStyle}}"></view>
+  <view wx:if="{{isShow}}" animation="{{animationData}}" class="m-popup" style="{{popupStyle}}">
+    <slot></slot>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy';
+  import merge from 'lib/json/merge'
+
+  export default class Popup extends wepy.component {
+    props = {
+      option: {
+        type: Object,
+        default: {}
+      },
+      show: {
+        type: Boolean,
+        default: false,
+        twoWay: true
+      }
+    };
+    opts = {
+      top: "auto",
+      left: "auto",
+      right: "auto",
+      bottom: "auto",
+      width: "auto",
+      height: "auto",
+      autoHide: false,
+      showCenter: false,
+      animate: {
+        name: "scale",//fade, slide-up, slide-down, slide-left, slide-right
+        show: true,
+        duration: 500,
+        timing: "ease"
+      },
+      overlay: {
+        show: true,
+        color: '#000',
+        opacity: 0.4
+      }
+    };
+
+    setAnimate (bool, timer) {
+      let res = wx.getSystemInfoSync();
+      switch (this.opts.animate.name) {
+        case "fade":
+          this.animation.opacity(bool ? 1 : 0).step({duration: timer});
+          break;
+        case "slide-up":
+          this.animation.translateY(bool ? 0 : -res.windowHeight).step({duration: timer});
+          break;
+        case "slide-down":
+          this.animation.translateY(bool ? 0 : res.windowHeight).step({duration: timer});
+          break;
+        case "slide-left":
+          this.animation.translateX(bool ? 0 : -res.windowWidth).step({duration: timer});
+          break;
+        case "slide-right":
+          this.animation.translateX(bool ? 0 : res.windowWidth).step({duration: timer});
+          break;
+        default:
+          this.animation.scale(bool ? 1 : 0.8).step({duration: 0});
+      }
+      this.animationData = this.animation.export();
+    };
+
+    onLoad() {
+      this.opts = merge(true, this.opts, this.option);
+      this.overlayShow = this.opts.overlay.show;
+      this.popupStyle = this.getPopupStyle(this.opts.showCenter, 0);
+      if(this.opts.showCenter){
+        this.opts.animate.show = false;
+      }
+      if(this.opts.animate.show){
+        this.animation = wx.createAnimation({
+          duration: this.opts.animate.duration,
+          timingFunction: this.opts.animate.timing
+        });
+        this.setAnimate(false, 0);
+      }
+    };
+
+    data = {
+      isShow: this.show,
+      overlayShow: true,
+      animationData: {},
+      overlayStyle: "",
+      popupStyle: ""
+    };
+
+    watch = {
+      show (v) {
+        if(v){
+          this.showPopup();
+        }else{
+          this.hidePopup();
+        }
+      }
+    };
+
+    getOverlayStyle (bool) {
+      return `opacity: ${bool ? this.opts.overlay.opacity : 0}; background-color: ${this.opts.overlay.color}; transition: all ${this.opts.animate.duration}ms linear`;
+    }
+
+    getPopupStyle (bool, opacity) {
+      let style = {
+        'left': this.opts.left,
+        'top': this.opts.top,
+        'right': this.opts.right,
+        'bottom': this.opts.bottom,
+        'width': this.opts.width,
+        'height': this.opts.height
+      };
+
+      if(bool){
+        style.left = "50%";
+        style.top = "45%";
+        style.bottom = "auto";
+        style.right= "auto";
+        style.transform = 'translate(-50%, -50%)';
+        style.transition = `opacity ${this.opts.animate.duration}ms linear`;
+        style.opacity = opacity;
+      }
+
+      let arr = [];
+      for(let key in style){
+        arr.push(key + ": " + style[key]);
+      }
+      return arr.join("; ");
+    }
+
+    showPopup () {
+      this.isShow = true;
+      this.$apply();
+      setTimeout(() => {
+        this.overlayStyle = this.getOverlayStyle(true);
+        if(this.opts.animate.show){
+          this.setAnimate(true, this.opts.animate.duration);
+        }else{
+          this.popupStyle = this.getPopupStyle(this.opts.showCenter, 1);
+        }
+        this.$apply();
+      }, 0);
+    }
+
+    hidePopup () {
+      this.overlayStyle = this.getOverlayStyle(false);
+      if(this.opts.animate.show){
+        this.setAnimate(false, this.opts.animate.duration);
+      }else{
+        this.popupStyle = this.getPopupStyle(this.opts.showCenter, 0);
+      }
+      this.$apply();
+      setTimeout(() => {
+        this.isShow = false;
+        this.$apply();
+      }, this.opts.animate.duration);
+    }
+
+    methods = {
+      overlayTap () {
+        if(this.opts.autoHide){
+          this.show = false;
+        }
+      }
+    };
+
+    events = {};
+  }
+</script>
+<style lang="scss">
+  @import "../style/mixin";
+  .m-popup {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 10000;
+  }
+
+  .m-overlay {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #000;
+    opacity: 0;
+    z-index: 1000;
+  }
+</style>

@@ -1,0 +1,10 @@
+{
+    "usingComponents": {
+        "poster": "../components/index/index"
+    },
+  "navigationBarBackgroundColor":"#000000",
+  "navigationBarTitleText": "城市创作计划",
+  "navigationBarTextStyle":"white",
+  "disableScroll": true,
+  "backgroundColor":"#000000"
+}

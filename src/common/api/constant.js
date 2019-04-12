@@ -1,0 +1,14 @@
+//存储变量
+export default {
+  CITY: '10000',//默认城市
+  SCHEDULE: '10001',
+  USER: '10002',//默认用户信息
+  COMMENT: '10003',
+  ONE_COMMENT: '10004',
+  SCORE: '10005',
+  CITY_LIST: '10006',
+  GOOD_CINEMA: '10007',//商城默认影院
+  GOOD_ORDER_LIST: '10008',
+  FILM_INFO: '10009',
+  CARD_CINEMA: '100010'
+}

@@ -1,0 +1,66 @@
+.shareCont{
+  height:100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: space-around;
+  flex-direction: column;
+}
+.shareBtns{
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.shareBtns .btn{
+  width: 171rpx;
+  height:53rpx;
+}
+.shareBtns .btn image{
+  width: 100%;
+  height:100%;
+}
+
+.shareCont .photo .posterPhoto{
+  border-radius: 26rpx;
+}
+.shareCont .photo{
+  text-align: center;
+  align-self:center;
+  position: relative;
+  width: 624rpx;
+  height: 700rpx;
+}
+.shareCont .photo .tips{
+  width: 181rpx;
+  height: 46rpx;
+
+}
+.shareCont .photo .scale .scaleImg {
+  width: 113rpx;
+  height:113rpx;
+}
+.shareCont .photo .scale{
+  position: relative;
+  top:-10.5%;
+}
+.shareCont .photo>image{
+  width: 624rpx;
+  height: 624rpx;
+}
+.text{
+  display: flex;
+  justify-content: center;
+  padding:0 30rpx;
+  height: 20%;
+  align-items: center;
+}
+.text .img1{
+  width: 234rpx;
+  height:139rpx;
+}
+.text .img2{
+  width: 672rpx;
+  height: 154rpx;
+}
+page{
+  background: #000;
+}

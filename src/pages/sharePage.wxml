@@ -1,0 +1,27 @@
+<!--index.wxml-->
+<poster id="poster" config="{{jdConfig}}" bind:success="onPosterSuccess" bind:fail="onPosterFail">
+</poster>
+<view class="shareCont">
+  <view bindtap="previewPic" class="photo">
+    <image class="posterPhoto" mode="aspectFill" src="{{resourImg}}"></image>
+    <view class="scale">
+      <view>
+        <image class="scaleImg" mode="aspectFill" src="../images/p3fangda.png"></image>
+      </view>
+      <view>
+        <image class="tips" mode="aspectFill" src="../images/p3changan.png"></image>
+      </view>
+    </view>
+  </view>
+  <view class="shareBtns">
+    <view bindtap="back" class="btn">
+      <image src="../images/p3button1.png"></image>
+    </view>
+    <view bindtap="save" class="btn">
+      <image src="../images/p3button2.png"></image>
+    </view>
+  </view>
+  <view class="text">
+    <image class="img2" mode="aspectFill" src="../images/p5logo2.png"></image>
+  </view>
+</view>

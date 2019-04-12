@@ -1,0 +1,62 @@
+<template>
+  <view class="m-nav-items">
+    <block wx:for="{{option}}" wx:key="{{index}}">
+      <navigator class="nav-item" url="{{item.url}}" hover-class="navigator-hover">
+        <icon class="{{'icon icon-'+ item.icon +(item.selected ? '-selected' : '')}}"></icon>
+        <text class="{{'name'+ (item.selected ? ' selected' : '')}}">{{ item.name }}</text>
+      </navigator>
+    </block>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy';
+
+  export default class AppNav extends wepy.component {
+    props = {
+      option: {
+        type: Array,
+        default: []
+      }
+    };
+    data = {
+    };
+  }
+</script>
+<style lang="scss">
+  @import "../style/static";
+  .m-nav-items{
+    @include display-flex;
+    @include justify-content(space-around);
+    @include align-items(center);
+    @include wh(100%, 97px);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 999;
+    background-color: rgba($c1, 0.95);
+  }
+  .nav-item{
+    text-align: center;
+    @include wh(100%, 97px);
+    @include display-flex;
+    @include flex-wrap(wrap);
+    @include align-content(flex-start);
+    @include justify-content(center);
+    .icon{
+      margin-top: rem(12px);
+    }
+    .name{
+      padding-top: rem(6px);
+      display: block;
+      width: 100%;
+      color: $c6;
+      @include font-size(20px);
+    }
+    .selected{
+      color: $c8;
+    }
+  }
+  .navigator-hover{
+    background-color: rgba($c0, 0.1);
+  }
+</style>
